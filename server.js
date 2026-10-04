@@ -31,6 +31,12 @@ io.on('connection', async (socket) => {
     await supabase.from('messages').insert({ text: msg });
     io.emit('message', msg);
   });
+
+  // Очистка всех сообщений
+  socket.on('clear', async () => {
+    await supabase.from('messages').delete().neq('id', 0);
+    io.emit('cleared');
+  });
 });
 
 const PORT = process.env.PORT || 3000;
