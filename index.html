@@ -5,26 +5,42 @@
   <title>Наш чат</title>
   <style>
     body { font-family: sans-serif; margin: 0; padding: 20px; background: #f0f0f0; }
+    h2 { text-align: center; }
+    #clearBtn {
+      display: block;
+      margin: 0 auto 15px;
+      padding: 8px 16px;
+      background: #c33;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    #clearBtn:hover { background: #a22; }
     #messages { list-style: none; padding: 0; max-width: 600px; margin: 0 auto; }
     #messages li { background: white; padding: 10px 15px; margin: 5px 0; border-radius: 10px; }
     #form { max-width: 600px; margin: 20px auto; display: flex; gap: 10px; }
     #input { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #ccc; font-size: 16px; }
-    button { padding: 10px 20px; border-radius: 10px; border: none; background: #333; color: white; cursor: pointer; font-size: 16px; }
+    button[type="submit"] { padding: 10px 20px; border-radius: 10px; border: none; background: #333; color: white; cursor: pointer; font-size: 16px; }
   </style>
 </head>
 <body>
-  <h2 style="text-align:center;">Наш чат</h2>
+  <h2>Наш чат</h2>
+  <button id="clearBtn">Очистить всё</button>
   <ul id="messages"></ul>
   <form id="form">
     <input id="input" autocomplete="off" placeholder="Напиши сообщение..." />
-    <button>Отправить</button>
+    <button type="submit">Отправить</button>
   </form>
+
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
     const form = document.getElementById('form');
     const input = document.getElementById('input');
     const messages = document.getElementById('messages');
+    const clearBtn = document.getElementById('clearBtn');
 
     socket.on('history', (history) => {
       history.forEach(msg => addMessage(msg.text));
@@ -32,11 +48,21 @@
 
     socket.on('message', (msg) => addMessage(msg));
 
+    socket.on('cleared', () => {
+      messages.innerHTML = '';
+    });
+
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       if (input.value) {
         socket.emit('message', input.value);
         input.value = '';
+      }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if (confirm('Удалить все сообщения? Это действие нельзя отменить.')) {
+        socket.emit('clear');
       }
     });
 
